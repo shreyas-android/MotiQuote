@@ -9,11 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.androidai.learning.moti.quote.repository.remote.RemoteQuoteRepositoryImpl
 import com.androidai.learning.moti.quote.ui.feature.MotiQuoteScreen
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModel
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModelFactory
 import com.androidai.learning.moti.quote.ui.theme.MotiQuoteTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -36,7 +38,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.fetchQuote()
+        lifecycleScope.launch {
+            viewModel.fetchQuote()
+        }
     }
 }
 

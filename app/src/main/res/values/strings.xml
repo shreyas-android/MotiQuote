@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Rand Quotes</string>
+    <string name="label_share_content">Share the content</string>
+
 </resources>

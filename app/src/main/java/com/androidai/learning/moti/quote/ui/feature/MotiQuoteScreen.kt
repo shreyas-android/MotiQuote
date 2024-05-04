@@ -1,35 +1,66 @@
 package com.androidai.learning.moti.quote.ui.feature
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.pullRefreshIndicatorTransform
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.androidai.learning.moti.quote.R
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModel
+import com.androidai.learning.moti.quote.utils.ContentUtils
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun MotiQuoteScreen(viewModel: MotiQuoteViewModel) {
-    val currentQuote = viewModel.currentQuote.observeAsState().value // Observe LiveData using collectAsState
+fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
 
+    val context = LocalContext.current
+    val currentQuote =
+        viewModel.currentQuote.observeAsState().value // Observe LiveData using collectAsState
+
+    val isRefreshing = viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(refreshing = isRefreshing.value, onRefresh = {
+        Log.d("CHECKPULLREFRESH", "CHEKCIG THE PULL REFRESH = ")
+        viewModel.refresh()
+    })
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)) {
 
         val colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -42,17 +73,76 @@ fun MotiQuoteScreen(viewModel: MotiQuoteViewModel) {
                     color = MaterialTheme.colorScheme.onSurface)
             })
         }
-        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
-            Text(
-                text = currentQuote?.text
-                    ?: "", fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface,)
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState)
+                .verticalScroll(rememberScrollState())) {
+            val (indicator, quote, author, iconContainer) = createRefs()
+            PullRefreshIndicator(isRefreshing.value, pullRefreshState,
+                Modifier.constrainAs(indicator) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }, scale = true, contentColor = MaterialTheme.colorScheme.primary)
 
-            if(currentQuote?.author != null) {
                 Text(
-                    text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
-                    modifier = Modifier.padding(8.dp), color = MaterialTheme.colorScheme.onSurface)
+                    text = currentQuote?.text
+                        ?: "",
+                    fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .constrainAs(quote) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                        .padding(16.dp), color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                if(currentQuote?.author != null) {
+                    Text(
+                        text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
+                        modifier = Modifier
+                            .constrainAs(author) {
+                                top.linkTo(quote.bottom)
+                                start.linkTo(quote.start)
+                            }
+                            .padding(horizontal = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurface)
+                }
+
+            if(!currentQuote?.text.isNullOrEmpty()) {
+                Row(modifier = Modifier.padding(end = 16.dp, top = 16.dp).constrainAs(iconContainer) {
+                    end.linkTo(parent.end)
+                    top.linkTo(quote.bottom)
+
+                }) {
+
+                    Icon(
+                        modifier = Modifier.padding(top = 16.dp, end = 16.dp).size(24.dp)
+
+                            .clickable {
+                                ContentUtils.shareContent(
+                                    context = context, data = currentQuote?.getCopyShareContent()
+                                        ?: "")
+                            }, painter = painterResource(id = R.drawable.ic_share),
+                        contentDescription = "", tint = MaterialTheme.colorScheme.primary)
+
+                    Icon(
+                        modifier = Modifier.padding(top = 16.dp, end = 16.dp).size(24.dp)
+
+                            .clickable {
+
+                                ContentUtils.copyAndShowToast(
+                                    context = context, result = currentQuote?.getCopyShareContent()
+                                        ?: "")
+                            }, painter = painterResource(id = R.drawable.ic_copy),
+                        contentDescription = "", tint = MaterialTheme.colorScheme.primary)
+                }
             }
+
+
         }
 
     }
