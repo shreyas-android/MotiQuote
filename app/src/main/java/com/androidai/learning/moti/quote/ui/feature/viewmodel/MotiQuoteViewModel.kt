@@ -7,12 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidai.learning.moti.quote.data.domain.Quote
 import com.androidai.learning.moti.quote.repository.QuoteRepository
+import com.androidai.learning.moti.quote.utils.RemoteUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class MotiQuoteViewModel(private val quoteRepository : QuoteRepository) : ViewModel() {
+class MotiQuoteViewModel(private val apiKey:String, private val quoteRepository : QuoteRepository) : ViewModel() {
 
     private val _currentQuote = MutableLiveData<Quote>()
 
@@ -25,10 +26,12 @@ class MotiQuoteViewModel(private val quoteRepository : QuoteRepository) : ViewMo
 
     suspend fun fetchQuote() {
         try {
-            val quote = quoteRepository.getRandomQuote() // Replace with logic to fetch quote
+            val category = RemoteUtils.getRandomCategory()
+            val quote = quoteRepository.getRandomQuote(category, apiKey) // Replace with logic to fetch quote
             _currentQuote.value = quote
+            Log.d("MotiQuoteViewModel", "SUCCESS fetching quote = ${quote}")
         } catch(e : Exception) {
-            Log.e("MotiQuoteViewModel", "Error fetching quote", e)
+            Log.d("MotiQuoteViewModel", "Error fetching quote = ${e.message}")
         }
     }
 

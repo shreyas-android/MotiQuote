@@ -11,3 +11,10 @@ data class QuoteResponse(val _id: String,
                          val length: Int,
                          val dateAdded: String,
                          val dateModified: String) // Replace with actual response data structure
+
+
+@Serializable
+data class NinjaQuoteResponse(
+                         val quote: String,
+                         val author: String,
+                        val category : String)

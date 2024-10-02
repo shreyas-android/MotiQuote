@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -38,12 +39,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.capitalize
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.androidai.learning.moti.quote.R
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModel
 import com.androidai.learning.moti.quote.utils.ContentUtils
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -55,7 +58,6 @@ fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
 
     val isRefreshing = viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullRefreshState(refreshing = isRefreshing.value, onRefresh = {
-        Log.d("CHECKPULLREFRESH", "CHEKCIG THE PULL REFRESH = ")
         viewModel.refresh()
     })
     Column(
@@ -77,8 +79,9 @@ fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .pullRefresh(pullRefreshState)
-                .verticalScroll(rememberScrollState())) {
-            val (indicator, quote, author, iconContainer) = createRefs()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()) {
+            val (indicator, quoteContainer, iconContainer) = createRefs()
             PullRefreshIndicator(isRefreshing.value, pullRefreshState,
                 Modifier.constrainAs(indicator) {
                     top.linkTo(parent.top)
@@ -86,41 +89,50 @@ fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
                     end.linkTo(parent.end)
                 }, scale = true, contentColor = MaterialTheme.colorScheme.primary)
 
+            Column(modifier = Modifier.constrainAs(quoteContainer){
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }) {
+
+                if(!currentQuote?.category.isNullOrEmpty()) {
+                    Text(
+                        text = currentQuote?.category!!.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                        fontSize = 24.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
                 Text(
                     text = currentQuote?.text
                         ?: "",
                     fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .constrainAs(quote) {
-                            top.linkTo(parent.top)
-                            bottom.linkTo(parent.bottom)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                        .padding(16.dp), color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if(currentQuote?.author != null) {
-                    Text(
-                        text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
-                        modifier = Modifier
-                            .constrainAs(author) {
-                                top.linkTo(quote.bottom)
-                                start.linkTo(quote.start)
-                            }
-                            .padding(horizontal = 8.dp),
+                    Text(text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         color = MaterialTheme.colorScheme.onSurface)
                 }
+            }
 
             if(!currentQuote?.text.isNullOrEmpty()) {
-                Row(modifier = Modifier.padding(end = 16.dp, top = 16.dp).constrainAs(iconContainer) {
-                    end.linkTo(parent.end)
-                    top.linkTo(quote.bottom)
+                Row(modifier = Modifier
+                    .padding(end = 16.dp, top = 16.dp)
+                    .constrainAs(iconContainer) {
+                        end.linkTo(parent.end)
+                        top.linkTo(quoteContainer.bottom)
 
-                }) {
+                    }) {
 
                     Icon(
-                        modifier = Modifier.padding(top = 16.dp, end = 16.dp).size(24.dp)
+                        modifier = Modifier
+                            .padding(top = 16.dp, end = 16.dp)
+                            .size(24.dp)
 
                             .clickable {
                                 ContentUtils.shareContent(
@@ -130,7 +142,9 @@ fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
                         contentDescription = "", tint = MaterialTheme.colorScheme.primary)
 
                     Icon(
-                        modifier = Modifier.padding(top = 16.dp, end = 16.dp).size(24.dp)
+                        modifier = Modifier
+                            .padding(top = 16.dp, end = 16.dp)
+                            .size(24.dp)
 
                             .clickable {
 

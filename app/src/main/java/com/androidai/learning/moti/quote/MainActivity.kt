@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private val motiQuoteViewModelFactory = MotiQuoteViewModelFactory(RemoteQuoteRepositoryImpl())
+    private val motiQuoteViewModelFactory = MotiQuoteViewModelFactory(
+        RemoteQuoteRepositoryImpl(), BuildConfig.QUOTES_API_KEY)
 
     private lateinit var viewModel : MotiQuoteViewModel
 

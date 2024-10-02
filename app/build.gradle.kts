@@ -1,8 +1,10 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlinx-serialization")
-
 
 }
 
@@ -21,6 +23,14 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val keystoreFile = project.rootProject.file("cred.properties")
+        val properties = org.jetbrains.kotlin.konan.properties.Properties()
+        properties.load(keystoreFile.inputStream())
+
+        buildConfigField(
+            "String", "QUOTES_API_KEY", properties.getProperty("QUOTES_API_KEY"))
+
     }
 
     buildTypes {
@@ -42,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
