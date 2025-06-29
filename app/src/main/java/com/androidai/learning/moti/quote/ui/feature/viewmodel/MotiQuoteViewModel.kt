@@ -29,9 +29,8 @@ class MotiQuoteViewModel(private val apiKey:String, private val quoteRepository 
             val category = RemoteUtils.getRandomCategory()
             val quote = quoteRepository.getRandomQuote(category, apiKey) // Replace with logic to fetch quote
             _currentQuote.value = quote
-            Log.d("MotiQuoteViewModel", "SUCCESS fetching quote = ${quote}")
         } catch(e : Exception) {
-            Log.d("MotiQuoteViewModel", "Error fetching quote = ${e.message}")
+            e.printStackTrace()
         }
     }
 

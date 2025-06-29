@@ -9,5 +9,5 @@ import retrofit2.http.Query
 interface QuoteService {
 
     @GET("/v1/quotes")
-    fun getRandomQuote( @Query("category") category:String, @Header("X-Api-Key") apiKey:String) : Call<ResponseBody> // Replace with actual endpoint and response data structure
+    fun getRandomQuote( @Header("X-Api-Key") apiKey:String) : Call<ResponseBody> // Replace with actual endpoint and response data structure
 }

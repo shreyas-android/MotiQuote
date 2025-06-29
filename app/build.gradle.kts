@@ -5,6 +5,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlinx-serialization")
+    id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.plugin.compose")
 
 }
 
@@ -12,33 +14,44 @@ android {
     namespace = "com.androidai.learning.moti.quote"
     compileSdk = 34
 
+    val keystoreFile = project.rootProject.file("gradle.properties")
+    val properties = org.jetbrains.kotlin.konan.properties.Properties()
+    properties.load(keystoreFile.inputStream())
+
     defaultConfig {
         applicationId = "com.androidai.learning.moti.quote"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 8
+        versionName = "1.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        val keystoreFile = project.rootProject.file("cred.properties")
-        val properties = org.jetbrains.kotlin.konan.properties.Properties()
-        properties.load(keystoreFile.inputStream())
+        val propertiesFie = project.rootProject.file("cred.properties")
+        val credProperties = org.jetbrains.kotlin.konan.properties.Properties()
+        credProperties.load(propertiesFie.inputStream())
 
         buildConfigField(
-            "String", "QUOTES_API_KEY", properties.getProperty("QUOTES_API_KEY"))
+            "String", "QUOTES_API_KEY", credProperties.getProperty("QUOTES_API_KEY"))
 
     }
 
-    buildTypes {
-        debug {
-            applicationIdSuffix += ".debug"
+    signingConfigs {
+        create("jackson") {
+            storeFile = file(properties.getProperty("JACK_SON_AI_RELEASE_STORE_FILE"))
+            storePassword = properties.getProperty("JACK_SON_AI_RELEASE_STORE_PASSWORD")
+            keyAlias = properties.getProperty("JACK_SON_AI_RELEASE_KEY_ALIAS")
+            keyPassword = properties.getProperty("JACK_SON_AI_RELEASE_KEY_PASSWORD")
         }
+    }
+
+    buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("jackson")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -55,7 +68,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -92,5 +105,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.github.shreyas-android:SKMPUIThemeLibrary:1.0.0")
+
+    implementation("sdk_V1:avenger-ad")
+    implementation("sdk_V1:ui")
 
 }

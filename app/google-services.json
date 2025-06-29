@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "494363615914",
+    "project_id": "rand-quotes",
+    "storage_bucket": "rand-quotes.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494363615914:android:a945083f0cddb4b845e6d3",
+        "android_client_info": {
+          "package_name": "com.androidai.learning.moti.quote"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA47LXESncnov2ECp6bYTWSE-IBU7x9RYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494363615914:android:a945083f0cddb4b845e6d3",
+        "android_client_info": {
+          "package_name": "com.androidai.learning.moti.quote.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA47LXESncnov2ECp6bYTWSE-IBU7x9RYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,10 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.androidai.framework.theme.sandroid.ui.SAndroidThemeCore
+import com.androidai.framework.theme.sandroid.ui.SAndroidUITheme
+import com.androidai.framework.theme.sandroid.ui.thememanager.SAndroidUIThemeManager
 import com.androidai.learning.moti.quote.repository.remote.RemoteQuoteRepositoryImpl
 import com.androidai.learning.moti.quote.ui.feature.MotiQuoteScreen
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModel
@@ -25,12 +29,17 @@ class MainActivity : ComponentActivity() {
     private lateinit var viewModel : MotiQuoteViewModel
 
     override fun onCreate(savedInstanceState : Bundle?) {
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         viewModel = ViewModelProvider(
             this, factory = motiQuoteViewModelFactory)[MotiQuoteViewModel::class.java]
         setContent {
-            MotiQuoteTheme { // A surface container using the 'background' color from the theme
+            val themeManager = remember {
+                SAndroidThemeCore.getThemeManager()
+            }
+            SAndroidUITheme(themeManager) { // A surface container using the 'background' color from the theme
                 // Replace with your ViewModel instance creation
                     MotiQuoteScreen(viewModel)
             }

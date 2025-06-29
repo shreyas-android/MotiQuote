@@ -21,13 +21,12 @@ class RemoteQuoteRepositoryImpl : QuoteRepository {
 
     override suspend fun getRandomQuote(category:String, apiKey:String) : Quote {
         val response =
-            quoteService.getRandomQuote(category, apiKey).awaitResponse() // Replace with your API endpoint call
+            quoteService.getRandomQuote(apiKey).awaitResponse() // Replace with your API endpoint call
 
 
         if(response.isSuccessful) { // Check for HTTP status code in success range
             val responseBody =
                 response.body()?.string() // Assuming successful response and data parsing
-            println("RESPONSE - $responseBody")
             val jsonArray = JSONArray(responseBody)
             val json = jsonArray.getJSONObject(0)
             val quoteResponse = if(json != null) {

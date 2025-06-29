@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,9 +44,15 @@ import androidx.compose.ui.text.capitalize
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.androidai.framework.theme.sandroid.ui.SAndroidUITheme
 import com.androidai.learning.moti.quote.R
 import com.androidai.learning.moti.quote.ui.feature.viewmodel.MotiQuoteViewModel
 import com.androidai.learning.moti.quote.utils.ContentUtils
+import com.sparrow.framework.core.avengerad.AvengerAdCore
+import com.sparrow.framework.ui.component.AdUIContainer
+import com.sparrow.framework.ui.component.AdUIContainerWIthDualBanner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -63,101 +70,113 @@ fun MotiQuoteScreen(viewModel : MotiQuoteViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background)) {
+            .background(color = SAndroidUITheme.colors.sAndroidUIBackgroundColors.backgroundColor).navigationBarsPadding()) {
 
         val colors = TopAppBarDefaults.smallTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = SAndroidUITheme.colors.sAndroidUIBackgroundColors.topAppBarColor,
         )
-        Surface(tonalElevation = 3.dp) {
-            TopAppBar(modifier = Modifier.statusBarsPadding(), colors = colors, title = {
+        Surface(tonalElevation = 3.dp, color = SAndroidUITheme.colors.sAndroidUIBackgroundColors.topAppBarColor) {
+            TopAppBar(modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding(), colors = colors, title = {
                 Text(
                     text = stringResource(id = R.string.app_name), fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface)
+                    color = SAndroidUITheme.colors.sAndroidUITextColors.topAppBarTextColor)
             })
         }
-        ConstraintLayout(
-            modifier = Modifier
-                .fillMaxSize()
-                .pullRefresh(pullRefreshState)
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()) {
-            val (indicator, quoteContainer, iconContainer) = createRefs()
-            PullRefreshIndicator(isRefreshing.value, pullRefreshState,
-                Modifier.constrainAs(indicator) {
+
+        AdUIContainerWIthDualBanner(modifier = Modifier, content = {
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()) {
+                val (indicator, quoteContainer, iconContainer) = createRefs()
+                PullRefreshIndicator(isRefreshing.value, pullRefreshState,
+                    Modifier.constrainAs(indicator) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }, scale = true, contentColor = SAndroidUITheme.colors.sAndroidUIOtherColors.accentColor)
+
+                Column(modifier = Modifier.constrainAs(quoteContainer){
                     top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                }, scale = true, contentColor = MaterialTheme.colorScheme.primary)
+                }) {
 
-            Column(modifier = Modifier.constrainAs(quoteContainer){
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }) {
+                    if(!currentQuote?.category.isNullOrEmpty()) {
+                        Text(
+                            text = currentQuote?.category!!.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                            fontSize = 24.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp),
+                            color = SAndroidUITheme.colors.sAndroidUITextColors.primaryTextColor,
+                        )
+                    }
 
-                if(!currentQuote?.category.isNullOrEmpty()) {
                     Text(
-                        text = currentQuote?.category!!.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-                        fontSize = 24.sp, fontWeight = FontWeight.Bold,
+                        text = currentQuote?.text
+                            ?: "",
+                        fontSize = 20.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color =  SAndroidUITheme.colors.sAndroidUITextColors.secondaryTextColor,
                     )
+
+                    if(currentQuote?.author != null) {
+                        Text(text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            color =SAndroidUITheme.colors.sAndroidUITextColors.tertiaryTextColor)
+                    }
                 }
 
-                Text(
-                    text = currentQuote?.text
-                        ?: "",
-                    fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                if(!currentQuote?.text.isNullOrEmpty()) {
+                    Row(modifier = Modifier
+                        .padding(end = 16.dp, top = 16.dp)
+                        .constrainAs(iconContainer) {
+                            end.linkTo(parent.end)
+                            top.linkTo(quoteContainer.bottom)
 
-                if(currentQuote?.author != null) {
-                    Text(text = "- ${currentQuote.author}", fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurface)
+                        }) {
+
+                        Icon(
+                            modifier = Modifier
+                                .padding(top = 16.dp, end = 16.dp)
+                                .size(24.dp)
+
+                                .clickable {
+                                    ContentUtils.shareContent(
+                                        context = context, data = currentQuote?.getCopyShareContent()
+                                            ?: "")
+                                }, painter = painterResource(id = R.drawable.ic_share),
+                            contentDescription = "", tint = SAndroidUITheme.colors.sAndroidUIOtherColors.accentColor)
+
+                        Icon(
+                            modifier = Modifier
+                                .padding(top = 16.dp, end = 16.dp)
+                                .size(24.dp)
+
+                                .clickable {
+
+                                    ContentUtils.copyAndShowToast(
+                                        context = context, result = currentQuote?.getCopyShareContent()
+                                            ?: "")
+                                }, painter = painterResource(id = R.drawable.ic_copy),
+                            contentDescription = "", tint = SAndroidUITheme.colors.sAndroidUIOtherColors.accentColor)
+                    }
                 }
+
+
             }
+        }, bannerAd1 = {
+            AvengerAdCore.getAvengerAd(CoroutineScope(Dispatchers.IO)).getAdMobBannerView(context,
+                "ca-app-pub-1009802568987548/8969817003")
+        }, bannerAd2 = {
+            AvengerAdCore.getAvengerAd(CoroutineScope(Dispatchers.IO)).getAdMobBannerView(context,
+                "ca-app-pub-1009802568987548/8067798872")
+        })
 
-            if(!currentQuote?.text.isNullOrEmpty()) {
-                Row(modifier = Modifier
-                    .padding(end = 16.dp, top = 16.dp)
-                    .constrainAs(iconContainer) {
-                        end.linkTo(parent.end)
-                        top.linkTo(quoteContainer.bottom)
-
-                    }) {
-
-                    Icon(
-                        modifier = Modifier
-                            .padding(top = 16.dp, end = 16.dp)
-                            .size(24.dp)
-
-                            .clickable {
-                                ContentUtils.shareContent(
-                                    context = context, data = currentQuote?.getCopyShareContent()
-                                        ?: "")
-                            }, painter = painterResource(id = R.drawable.ic_share),
-                        contentDescription = "", tint = MaterialTheme.colorScheme.primary)
-
-                    Icon(
-                        modifier = Modifier
-                            .padding(top = 16.dp, end = 16.dp)
-                            .size(24.dp)
-
-                            .clickable {
-
-                                ContentUtils.copyAndShowToast(
-                                    context = context, result = currentQuote?.getCopyShareContent()
-                                        ?: "")
-                            }, painter = painterResource(id = R.drawable.ic_copy),
-                        contentDescription = "", tint = MaterialTheme.colorScheme.primary)
-                }
-            }
-
-
-        }
 
     }
 }
